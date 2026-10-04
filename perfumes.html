@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfume This or That</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('background.jpg') center / cover repeat-y,
+                        linear-gradient(135deg, #ffd1e8, #d7c4ff, #bfeaff);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        h1 { font-size: 36px; margin: 0 0 10px; color: #411A59; }
+
+        .transparent-box {
+            background: rgba(255, 255, 255, 0.55);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+        }
+
+        .letter-content {
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 17px;
+            line-height: 1.5;
+            color: #333;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .letter-content h2 { margin: 0 0 14px; font-size: 20px; }
+
+        .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .perfume {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .thumb {
+            height: 110px;
+            border-radius: 6px;
+            background: #efe6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            overflow: hidden;
+        }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        .perfume .name { font-weight: bold; }
+        .perfume .brand, .perfume .note { font-size: 14px; color: #555; }
+
+        .vs { margin: 10px 0 0; font-size: 14px; color: #555; }
+
+        button {
+            padding: 10px 14px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 15px;
+        }
+        button:hover { background-color: #0056b3; }
+        button.secondary { background-color: #7a6a93; }
+        button.secondary:hover { background-color: #5f5176; }
+        button.danger { background-color: #b3364a; }
+        button.danger:hover { background-color: #8e2a3b; }
+        button.active { background-color: #411A59; }
+
+        .controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+
+        #status { min-height: 24px; margin: 12px 0 0; font-weight: bold; }
+
+        .list { list-style: none; margin: 0; padding: 0; text-align: left; }
+        .list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .list li:last-child { border-bottom: none; }
+        .list .actions { display: flex; gap: 6px; }
+        .list button { padding: 6px 10px; font-size: 14px; }
+
+        .empty { color: #666; }
+        .back-link { display: inline-block; margin-top: 14px; color: #411A59; font-family: 'Comic Sans MS', cursive; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>THIS OR THAT</h1>
+        <div class="transparent-box">
+            <div class="controls">
+                <button id="tabPlay" type="button" class="active">Play</button>
+                <button id="tabFav" type="button">Favorites (<span id="favCount">0</span>)</button>
+                <button id="tabWant" type="button">Want to try (<span id="wantCount">0</span>)</button>
+            </div>
+
+            <div class="letter-content" id="panel"></div>
+
+            <p id="status" aria-live="polite"></p>
+            <div class="controls">
+                <button id="resetBtn" type="button" class="danger">Reset everything</button>
+            </div>
+            <a class="back-link" href="index.html">&larr; Back home</a>
+        </div>
+    </div>
+
+    <script>
+        // ===== EDIT YOUR PERFUMES HERE =====
+        // id: any unique text (don't change it after he has started playing)
+        // image: optional file name uploaded to your repo, e.g. 'perfume1.jpg'. Leave '' for a bottle emoji.
+        const PERFUMES = [
+            { id: 'p1', name: 'Lorem ipsum 1', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' },
+            { id: 'p2', name: 'Lorem ipsum 2', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' },
+            { id: 'p3', name: 'Lorem ipsum 3', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' },
+            { id: 'p4', name: 'Lorem ipsum 4', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' },
+            { id: 'p5', name: 'Lorem ipsum 5', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' },
+            { id: 'p6', name: 'Lorem ipsum 6', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' },
+            { id: 'p7', name: 'Lorem ipsum 7', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' },
+            { id: 'p8', name: 'Lorem ipsum 8', brand: 'Dolor sit amet', note: 'Consectetur adipiscing elit', image: '' }
+        ];
+        // ===================================
+
+        const KEY = 'perfume-this-or-that-v1';
+        const byId = Object.fromEntries(PERFUMES.map(p => [p.id, p]));
+        let saved = { fav: [], want: [] };
+        let view = 'play';
+        let current = null;
+
+        const $ = id => document.getElementById(id);
+
+        function load() {
+            try {
+                const raw = localStorage.getItem(KEY);
+                if (raw) {
+                    const p = JSON.parse(raw);
+                    if (Array.isArray(p.fav) && Array.isArray(p.want)) saved = p;
+                }
+            } catch (e) { /* storage unavailable: the game still works for this visit */ }
+            // drop ids that no longer exist in the list above
+            saved.fav = saved.fav.filter(id => byId[id]);
+            saved.want = saved.want.filter(id => byId[id]);
+        }
+
+        function persist() {
+            try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { /* ignore */ }
+        }
+
+        function setStatus(text) { $('status').textContent = text; }
+
+        function pool() {
+            return PERFUMES.filter(p => !saved.fav.includes(p.id) && !saved.want.includes(p.id));
+        }
+
+        function newPair() {
+            const items = pool();
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+            current = items.length >= 2 ? [items[0], items[1]] : null;
+        }
+
+        function el(tag, className, text) {
+            const e = document.createElement(tag);
+            if (className) e.className = className;
+            if (text !== undefined) e.textContent = text;
+            return e;
+        }
+
+        function button(label, className, onClick) {
+            const b = el('button', className, label);
+            b.type = 'button';
+            b.addEventListener('click', onClick);
+            return b;
+        }
+
+        function makeCard(p) {
+            const card = el('div', 'perfume');
+            const thumb = el('div', 'thumb');
+            if (p.image) {
+                const img = document.createElement('img');
+                img.src = p.image;
+                img.alt = p.name;
+                img.addEventListener('error', () => { thumb.textContent = '🧴'; });
+                thumb.appendChild(img);
+            } else {
+                thumb.textContent = '🧴';
+            }
+            card.append(thumb, el('div', 'name', p.name), el('div', 'brand', p.brand), el('div', 'note', p.note));
+            card.append(
+                button('Pick this one', '', () => pick(p)),
+                button("Haven't smelled it", 'secondary', () => unsmelled(p))
+            );
+            return card;
+        }
+
+        function pick(p) {
+            saved.fav.push(p.id);
+            persist();
+            setStatus('Saved "' + p.name + '" to Favorites.');
+            newPair();
+            render();
+        }
+
+        function unsmelled(p) {
+            saved.want.push(p.id);
+            persist();
+            setStatus('Saved "' + p.name + '" to Want to try.');
+            newPair();
+            render();
+        }
+
+        function renderPlay(panel) {
+            panel.appendChild(el('h2', '', 'Which one do you like more?'));
+            if (!current) {
+                panel.appendChild(el('p', 'empty', 'No more pairs left! Check your folders, or remove perfumes from them to play again.'));
+                return;
+            }
+            const cards = el('div', 'cards');
+            current.forEach(p => cards.appendChild(makeCard(p)));
+            panel.appendChild(cards);
+            const row = el('div', 'vs');
+            row.appendChild(button('Skip this pair', 'secondary', () => { newPair(); setStatus(''); render(); }));
+            panel.appendChild(row);
+        }
+
+        function renderFolder(panel, key, title, emptyText) {
+            panel.appendChild(el('h2', '', title));
+            const ids = saved[key];
+            if (ids.length === 0) {
+                panel.appendChild(el('p', 'empty', emptyText));
+                return;
+            }
+            const ul = el('ul', 'list');
+            ids.forEach(id => {
+                const p = byId[id];
+                const li = el('li');
+                const info = el('div');
+                info.append(el('strong', '', p.name), el('div', 'brand', p.brand));
+                const actions = el('div', 'actions');
+                if (key === 'want') {
+                    actions.appendChild(button('Smelled it → Favorites', '', () => {
+                        saved.want = saved.want.filter(x => x !== id);
+                        saved.fav.push(id);
+                        persist(); setStatus(''); render();
+                    }));
+                }
+                actions.appendChild(button('Remove', 'danger', () => {
+                    saved[key] = saved[key].filter(x => x !== id);
+                    persist();
+                    if (!current) newPair();
+                    setStatus(''); render();
+                }));
+                li.append(info, actions);
+                ul.appendChild(li);
+            });
+            panel.appendChild(ul);
+        }
+
+        function render() {
+            const panel = $('panel');
+            panel.replaceChildren();
+            if (view === 'play') renderPlay(panel);
+            else if (view === 'fav') renderFolder(panel, 'fav', 'Favorites', 'Nothing here yet. Pick a perfume while playing!');
+            else renderFolder(panel, 'want', 'Want to try', "Nothing here yet. Tap \"Haven't smelled it\" while playing!");
+
+            $('favCount').textContent = saved.fav.length;
+            $('wantCount').textContent = saved.want.length;
+            $('tabPlay').classList.toggle('active', view === 'play');
+            $('tabFav').classList.toggle('active', view === 'fav');
+            $('tabWant').classList.toggle('active', view === 'want');
+        }
+
+        function show(v) { view = v; setStatus(''); render(); }
+
+        $('tabPlay').addEventListener('click', () => show('play'));
+        $('tabFav').addEventListener('click', () => show('fav'));
+        $('tabWant').addEventListener('click', () => show('want'));
+        $('resetBtn').addEventListener('click', () => {
+            if (confirm('Clear all saved perfumes and start over?')) {
+                saved = { fav: [], want: [] };
+                persist();
+                newPair();
+                show('play');
+            }
+        });
+
+        load();
+        newPair();
+        render();
+    </script>
+</body>
+</html>
