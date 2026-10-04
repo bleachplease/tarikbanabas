@@ -11,7 +11,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 150px;
+    width: 200px;
     border-radius: 16px;
     z-index: 0;            /* behind the menu */
     pointer-events: none;  /* clicks go straight through it */
@@ -143,7 +143,7 @@
     function startFloating() {
         let x = Math.random() * Math.max(0, window.innerWidth - floater.offsetWidth);
         let y = Math.random() * Math.max(0, window.innerHeight - floater.offsetHeight);
-        const speed = 80;                       // pixels per second, raise for faster
+        const speed = 115;                       // pixels per second, raise for faster
         const angle = Math.random() * 2 * Math.PI;
         let vx = Math.cos(angle) * speed;
         let vy = Math.sin(angle) * speed;
