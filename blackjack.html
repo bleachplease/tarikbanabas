@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('background.jpg') center / cover repeat-y,
+                        linear-gradient(135deg, #ffd1e8, #d7c4ff, #bfeaff);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin: 0 0 10px;
+            color: #411A59;
+        }
+
+        .transparent-box {
+            background: rgba(255, 255, 255, 0.55);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+        }
+
+        .letter-content {
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 17px;
+            line-height: 1.5;
+            color: #333;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .hand-label { margin: 10px 0 4px; font-weight: bold; }
+        .hand { min-height: 96px; }
+
+        .card {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 58px;
+            height: 84px;
+            margin: 4px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 22px;
+            font-weight: bold;
+            color: #222;
+        }
+        .card.red { color: #d11; }
+        .card.back {
+            background: repeating-linear-gradient(45deg, #411A59, #411A59 6px, #6b3a8c 6px, #6b3a8c 12px);
+        }
+
+        #result {
+            min-height: 28px;
+            margin: 14px 0 0;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+
+        button {
+            padding: 10px 18px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 16px;
+        }
+        button:hover:not(:disabled) { background-color: #0056b3; }
+        button:disabled { background-color: #9bbbe0; cursor: not-allowed; }
+
+        .score { font-size: 15px; margin: 6px 0 0; }
+        .back-link { display: inline-block; margin-top: 14px; color: #411A59; font-family: 'Comic Sans MS', cursive; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BLACKJACK</h1>
+        <div class="transparent-box">
+            <div class="letter-content">
+                <div class="hand-label">Dealer: <span id="dealerPoint"></span></div>
+                <div class="hand" id="dealerCards"></div>
+
+                <div class="hand-label">You: <span id="playerPoint"></span></div>
+                <div class="hand" id="playerCards"></div>
+
+                <div id="result" aria-live="polite"></div>
+                <p class="score" id="score"></p>
+            </div>
+
+            <div class="controls">
+                <button id="hitBtn" type="button">Hit</button>
+                <button id="standBtn" type="button">Stand</button>
+                <button id="newBtn" type="button">New game</button>
+            </div>
+            <a class="back-link" href="index.html">&larr; Back home</a>
+        </div>
+    </div>
+
+    <script>
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+        let deck = [];
+        let player = [];
+        let dealer = [];
+        let roundOver = true;
+        const tally = { win: 0, lose: 0, push: 0 };
+
+        const $ = id => document.getElementById(id);
+
+        function newDeck() {
+            const d = [];
+            for (const suit of SUITS) {
+                for (const rank of RANKS) d.push({ rank, suit });
+            }
+            // Fisher-Yates shuffle (a fair shuffle)
+            for (let i = d.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [d[i], d[j]] = [d[j], d[i]];
+            }
+            return d;
+        }
+
+        function cardValue(card) {
+            if (card.rank === 'A') return 11;
+            if (card.rank === 'J' || card.rank === 'Q' || card.rank === 'K') return 10;
+            return parseInt(card.rank, 10);
+        }
+
+        // Aces count as 11 unless that would bust, then as 1.
+        function handValue(hand) {
+            let total = 0;
+            let aces = 0;
+            for (const card of hand) {
+                total += cardValue(card);
+                if (card.rank === 'A') aces++;
+            }
+            while (total > 21 && aces > 0) {
+                total -= 10;
+                aces--;
+            }
+            return total;
+        }
+
+        function cardElement(card, hidden) {
+            const el = document.createElement('div');
+            el.className = 'card';
+            if (hidden) {
+                el.classList.add('back');
+                el.setAttribute('aria-label', 'Hidden card');
+            } else {
+                el.textContent = card.rank + card.suit;
+                if (card.suit === '♥' || card.suit === '♦') el.classList.add('red');
+            }
+            return el;
+        }
+
+        function render() {
+            const dealerBox = $('dealerCards');
+            const playerBox = $('playerCards');
+            dealerBox.replaceChildren();
+            playerBox.replaceChildren();
+
+            dealer.forEach((card, i) => {
+                dealerBox.appendChild(cardElement(card, !roundOver && i === 1));
+            });
+            player.forEach(card => playerBox.appendChild(cardElement(card, false)));
+
+            $('playerPoint').textContent = handValue(player);
+            $('dealerPoint').textContent = roundOver ? handValue(dealer) : handValue([dealer[0]]);
+
+            $('hitBtn').disabled = roundOver;
+            $('standBtn').disabled = roundOver;
+            $('score').textContent = 'Wins: ' + tally.win + '   Losses: ' + tally.lose + '   Ties: ' + tally.push;
+        }
+
+        function endRound(outcome, message) {
+            roundOver = true;
+            tally[outcome]++;
+            $('result').textContent = message;
+            render();
+        }
+
+        function startGame() {
+            deck = newDeck();
+            player = [deck.pop(), deck.pop()];
+            dealer = [deck.pop(), deck.pop()];
+            roundOver = false;
+            $('result').textContent = '';
+
+            const p = handValue(player);
+            const d = handValue(dealer);
+
+            if (p === 21 && d === 21) {
+                endRound('push', 'Both have blackjack. It is a tie!');
+            } else if (p === 21) {
+                endRound('win', 'Blackjack! You win!');
+            } else if (d === 21) {
+                endRound('lose', 'Dealer has blackjack. You lose.');
+            } else {
+                render();
+            }
+        }
+
+        function hit() {
+            if (roundOver) return;
+            player.push(deck.pop());
+            const p = handValue(player);
+            if (p > 21) {
+                endRound('lose', 'Bust! You went over 21. You lose.');
+            } else if (p === 21) {
+                stand();
+            } else {
+                render();
+            }
+        }
+
+        function stand() {
+            if (roundOver) return;
+            // Dealer draws until reaching 17 or more.
+            while (handValue(dealer) < 17) dealer.push(deck.pop());
+
+            const p = handValue(player);
+            const d = handValue(dealer);
+
+            if (d > 21) {
+                endRound('win', 'Dealer busts! You win!');
+            } else if (p > d) {
+                endRound('win', 'You win, ' + p + ' to ' + d + '!');
+            } else if (p < d) {
+                endRound('lose', 'Dealer wins, ' + d + ' to ' + p + '.');
+            } else {
+                endRound('push', 'It is a tie at ' + p + '.');
+            }
+        }
+
+        $('hitBtn').addEventListener('click', hit);
+        $('standBtn').addEventListener('click', stand);
+        $('newBtn').addEventListener('click', startGame);
+
+        startGame();
+    </script>
+</body>
+</html>
