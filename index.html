@@ -7,6 +7,16 @@
     <style>
         * { box-sizing: border-box; }
 
+        #floater {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 150px;
+    border-radius: 16px;
+    z-index: 0;            /* behind the menu */
+    pointer-events: none;  /* clicks go straight through it */
+}
+        
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -29,7 +39,23 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
             text-align: center;
+            position: relative;
+            z-index: 1; 
         }
+
+        #floater {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 150px;
+    border-radius: 16px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    #floater { width: 100px; }
+}
 
         .vibrant-colors {
     display: inline-block;
@@ -94,6 +120,7 @@
     </style>
 </head>
 <body>
+    <img id="floater" src="pony.png" alt="" aria-hidden="true">
     <div class="container">
         <h1 class="vibrant-colors">Selam Aşkımmm</h1>
 
@@ -109,5 +136,44 @@
             </nav>
         </div>
     </div>
+    <script>
+    const floater = document.getElementById('floater');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function startFloating() {
+        let x = Math.random() * Math.max(0, window.innerWidth - floater.offsetWidth);
+        let y = Math.random() * Math.max(0, window.innerHeight - floater.offsetHeight);
+        const speed = 80;                       // pixels per second, raise for faster
+        const angle = Math.random() * 2 * Math.PI;
+        let vx = Math.cos(angle) * speed;
+        let vy = Math.sin(angle) * speed;
+        let last = performance.now();
+
+        function move(now) {
+            const dt = (now - last) / 1000;     // keeps speed the same on any screen
+            last = now;
+
+            const maxX = Math.max(0, window.innerWidth - floater.offsetWidth);
+            const maxY = Math.max(0, window.innerHeight - floater.offsetHeight);
+
+            x += vx * dt;
+            y += vy * dt;
+
+            if (x <= 0)    { x = 0;    vx =  Math.abs(vx); }
+            if (x >= maxX) { x = maxX; vx = -Math.abs(vx); }
+            if (y <= 0)    { y = 0;    vy =  Math.abs(vy); }
+            if (y >= maxY) { y = maxY; vy = -Math.abs(vy); }
+
+            floater.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+            requestAnimationFrame(move);
+        }
+
+        floater.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
+        if (!reduceMotion) requestAnimationFrame(move);
+    }
+
+    if (floater.complete) startFloating();
+    else floater.addEventListener('load', startFloating);
+</script>
 </body>
 </html>
