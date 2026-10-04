@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Put your background image next to this file and name it background.jpg.
+               The gradient shows if the image is missing. */
+            background: url('background.jpg') center / cover repeat-y,
+                        linear-gradient(135deg, #ffd1e8, #d7c4ff, #bfeaff);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        .vibrant-colors {
+            display: inline-block;
+            font-size: 36px;
+            margin: 0 0 10px;
+            color: transparent;
+            animation: colorChange 5s infinite alternate;
+        }
+
+        @keyframes colorChange {
+            0%   { color: #ff3399; }
+            10%  { color: #FFA500; }
+            20%  { color: #00FFFF; }
+            30%  { color: #C0C0C0; }
+            40%  { color: #FF6EC7; }
+            50%  { color: #FFD700; }
+            60%  { color: #00FFFF; }
+            70%  { color: #FFFF00; }
+            80%  { color: #9B30FF; }
+            90%  { color: #00FFFF; }
+            100% { color: #000000; }
+        }
+
+        .transparent-box {
+            background: rgba(255, 255, 255, 0.55);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+        }
+
+        .letter-content {
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 17px;
+            line-height: 1.5;
+            color: #333;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 16px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-family: 'Comic Sans MS', cursive;
+            font-size: 17px;
+        }
+
+        .menu a:hover,
+        .menu a:focus-visible {
+            background-color: #0056b3;
+        }
+
+        .menu small {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .vibrant-colors { animation: none; color: #ff3399; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="vibrant-colors">WELCOME, BABE</h1>
+
+        <div class="transparent-box">
+            <div class="letter-content">
+                <p>Hi love, I made this little corner of the internet just for you.</p>
+                <p>Pick something below and have fun!</p>
+            </div>
+
+            <nav class="menu">
+                <a href="letter.html">Write a letter<small>Fill in the blanks</small></a>
+                <a href="blackjack.html">Play blackjack<small>Beat the dealer</small></a>
+            </nav>
+        </div>
+    </div>
+</body>
+</html>
