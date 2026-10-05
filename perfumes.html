@@ -265,7 +265,7 @@
         function pick(p) {
             saved.fav.push(p.id);
             persist();
-            setStatus('Saved "' + p.name + '" to Favorites.');
+            setStatus('"' + p.name + '" favorilere eklendi.');
             newPair();
             render();
         }
@@ -273,7 +273,7 @@
         function unsmelled(p) {
             saved.want.push(p.id);
             persist();
-            setStatus('Saved "' + p.name + '" to Want to try.');
+            setStatus('"' + p.name + '" denemek istediklerine eklendi.');
             newPair();
             render();
         }
@@ -281,7 +281,7 @@
         function renderPlay(panel) {
             panel.appendChild(el('h2', '', 'Hangisini daha çok seviyorsun?'));
             if (!current) {
-                panel.appendChild(el('p', 'empty', 'No more pairs left! Check your folders, or remove perfumes from them to play again.'));
+                panel.appendChild(el('p', 'empty', 'Daha fazla çift kalmadı! Klasörlerini kontrol et veya tekrar oynamak için parfümleri kaldır.'));
                 return;
             }
             const cards = el('div', 'cards');
@@ -307,13 +307,13 @@
                 info.append(el('strong', '', p.name), el('div', 'brand', p.brand));
                 const actions = el('div', 'actions');
                 if (key === 'want') {
-                    actions.appendChild(button('Smelled it → Favorites', '', () => {
+                    actions.appendChild(button('Kokladım → Favoriler', '', () => {
                         saved.want = saved.want.filter(x => x !== id);
                         saved.fav.push(id);
                         persist(); setStatus(''); render();
                     }));
                 }
-                actions.appendChild(button('Remove', 'danger', () => {
+                actions.appendChild(button('Kaldır', 'danger', () => {
                     saved[key] = saved[key].filter(x => x !== id);
                     persist();
                     if (!current) newPair();
@@ -329,8 +329,8 @@
             const panel = $('panel');
             panel.replaceChildren();
             if (view === 'play') renderPlay(panel);
-            else if (view === 'fav') renderFolder(panel, 'fav', 'Favoriler', 'Nothing here yet. Pick a perfume while playing!');
-            else renderFolder(panel, 'want', 'Denemek İstediklerim', "Nothing here yet. Tap \"Haven't smelled it\" while playing!");
+            else if (view === 'fav') renderFolder(panel, 'fav', 'Favoriler', 'Henüz burası boş. Oynarken bir parfüm seç!');
+            else renderFolder(panel, 'want', 'Denemek İstediklerim', "Henüz burası boş. Oynarken \"Henüz Koklamadım\" butonuna bas!");
 
             $('favCount').textContent = saved.fav.length;
             $('wantCount').textContent = saved.want.length;
@@ -345,7 +345,7 @@
         $('tabFav').addEventListener('click', () => show('fav'));
         $('tabWant').addEventListener('click', () => show('want'));
         $('resetBtn').addEventListener('click', () => {
-            if (confirm('Clear all saved perfumes and start over?')) {
+            if (confirm('Tüm kaydedilmiş parfümleri temizleyip baştan başlamak ister misin?')) {
                 saved = { fav: [], want: [] };
                 persist();
                 newPair();
