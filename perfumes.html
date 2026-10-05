@@ -66,7 +66,6 @@
         }
 
         .thumb {
-            height: 110px;
             border-radius: 6px;
             background: #efe6ff;
             display: flex;
@@ -75,7 +74,11 @@
             font-size: 48px;
             overflow: hidden;
         }
-        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb img { 
+            max-width: 100%; 
+            height: auto; 
+            display: block;
+        }
 
         .perfume .name { font-weight: bold; }
         .perfume .brand, .perfume .note { font-size: 14px; color: #555; }
@@ -153,34 +156,34 @@
             { id: 'p5', name: 'Black Phantom', brand: 'Killian', image: 'blackphantom.png' },
             { id: 'p6', name: 'Bottled Absolu', brand: 'Boss', image: 'bottledabsolu.png' },
             { id: 'p7', name: 'Cedrat Boise', brand: 'Mancera', image: 'cedratboise.png' },
-            { id: 'p8', name: 'Club de Nuit Intense Man', brand: 'Armaf', image: 'clubdenuitintenseman.png' }
-            { id: 'p9', name: 'Pour Homme Dylan Blue', brand: 'Versace', image: 'dylanblue.png' }
-            { id: 'p10', name: 'Éclair Affair', brand: 'French Avenue', image: 'eclairaffair.png' }
-            { id: 'p11', name: 'Electric Cherry', brand: 'Tom Ford', image: 'electriccherry.png' }
-            { id: 'p12', name: 'Erba Gold', brand: 'Xerjoff', image: 'erbagold.png' }
-            { id: 'p13', name: 'Fico di Amalfi', brand: 'Acqua di Parma', image: 'ficodiamalfi.png' }
-            { id: 'p14', name: 'Insense Ultramarine', brand: 'Givenchy', image: 'insenseultramarine.png' }
-            { id: 'p15', name: 'Invictus Aqua', brand: 'Rabbane', image: 'invictusaqua.png' }
-            { id: 'p16', name: 'Kayaan Classic', brand: 'Al Wataniah', image: 'kayaanclassic.png' }
-            { id: 'p17', name: 'Legend', brand: 'Mont Blanc', image: 'legend.png' }
-            { id: 'p18', name: 'Liquid Brun', brand: 'French Avenue', image: 'liquidbrun.png' }
-            { id: 'p19', name: 'Le Male Elixir', brand: 'Jean Paul Gaultier', image: 'lemaleelixir.png' }
-            { id: 'p20', name: 'Marwa', brand: 'Arabiyat Prestige', image: 'marwa.png' }
-            { id: 'p21', name: 'Miss Dior', brand: 'Dior', image: 'missdior.png' }
-            { id: 'p22', name: 'Muse', brand: 'Yves Saint Laurent', image: 'muse.png' }
-            { id: 'p23', name: 'MYSLF', brand: 'Yves Saint Laurent', image: 'myslf.png' }
-            { id: 'p24', name: 'Nautica Voyage', brand: 'Nautica', image: 'nauticavoyage.png' }
-            { id: 'p25', name: 'Purpl', brand: 'Pekji', image: 'purpl.png' }
-            { id: 'p26', name: 'Spectre Wraith', brand: 'French Avenue', image: 'spectrewraith.png' }
-            { id: 'p27', name: 'The Dreamer', brand: 'Versace', image: 'thedreamer.png' }
-            { id: 'p28', name: 'The Night', brand: 'Frederic Malle Editions de Parfums', image: 'thenight.png' }
-            { id: 'p29', name: 'The Most Wanted', brand: 'Azarro', image: 'themostwanted.png' }
-            { id: 'p30', name: 'Victorioso Victory', brand: 'Maison Alhambra', image: 'victoriosovictory.png' }
-            { id: 'p31', name: 'Vintage Radio', brand: 'Lattafa', image: 'vintageradio.png' }
-            { id: 'p32', name: 'Symphony', brand: 'Louis Vuitton', image: 'symphony.png' }
-            { id: 'p33', name: 'Un Bel Amour D’été', brand: 'Parfum d Empire', image: 'unbelamourdete' }
-            { id: 'p34', name: 'Angels Share', brand: 'Killian', image: 'angelsshare.png' }
-            { id: 'p35', name: 'Black Orchid', brand: 'Tom Ford', image: 'blackorchid.png' }
+            { id: 'p8', name: 'Club de Nuit Intense Man', brand: 'Armaf', image: 'clubdenuitintenseman.png' },
+            { id: 'p9', name: 'Pour Homme Dylan Blue', brand: 'Versace', image: 'dylanblue.png' },
+            { id: 'p10', name: 'Éclair Affair', brand: 'French Avenue', image: 'eclairaffair.png' },
+            { id: 'p11', name: 'Electric Cherry', brand: 'Tom Ford', image: 'electriccherry.png' },
+            { id: 'p12', name: 'Erba Gold', brand: 'Xerjoff', image: 'erbagold.png' },
+            { id: 'p13', name: 'Fico di Amalfi', brand: 'Acqua di Parma', image: 'ficodiamalfi.png' },
+            { id: 'p14', name: 'Insense Ultramarine', brand: 'Givenchy', image: 'insenseultramarine.png' },
+            { id: 'p15', name: 'Invictus Aqua', brand: 'Rabbane', image: 'invictusaqua.png' },
+            { id: 'p16', name: 'Kayaan Classic', brand: 'Al Wataniah', image: 'kayaanclassic.png' },
+            { id: 'p17', name: 'Legend', brand: 'Mont Blanc', image: 'legend.png' },
+            { id: 'p18', name: 'Liquid Brun', brand: 'French Avenue', image: 'liquidbrun.png' },
+            { id: 'p19', name: 'Le Male Elixir', brand: 'Jean Paul Gaultier', image: 'lemaleelixir.png' },
+            { id: 'p20', name: 'Marwa', brand: 'Arabiyat Prestige', image: 'marwa.png' },
+            { id: 'p21', name: 'Miss Dior', brand: 'Dior', image: 'missdior.png' },
+            { id: 'p22', name: 'Muse', brand: 'Yves Saint Laurent', image: 'muse.png' },
+            { id: 'p23', name: 'MYSLF', brand: 'Yves Saint Laurent', image: 'myslf.png' },
+            { id: 'p24', name: 'Nautica Voyage', brand: 'Nautica', image: 'nauticavoyage.png' },
+            { id: 'p25', name: 'Purpl', brand: 'Pekji', image: 'purpl.png' },
+            { id: 'p26', name: 'Spectre Wraith', brand: 'French Avenue', image: 'spectrewraith.png' },
+            { id: 'p27', name: 'The Dreamer', brand: 'Versace', image: 'thedreamer.png' },
+            { id: 'p28', name: 'The Night', brand: 'Frederic Malle Editions de Parfums', image: 'thenight.png' },
+            { id: 'p29', name: 'The Most Wanted', brand: 'Azarro', image: 'themostwanted.png' },
+            { id: 'p30', name: 'Victorioso Victory', brand: 'Maison Alhambra', image: 'victoriosovictory.png' },
+            { id: 'p31', name: 'Vintage Radio', brand: 'Lattafa', image: 'vintageradio.png' },
+            { id: 'p32', name: 'Symphony', brand: 'Louis Vuitton', image: 'symphony.png' },
+            { id: 'p33', name: 'Un Bel Amour D'été', brand: 'Parfum d Empire', image: 'unbelamourdete.png' },
+            { id: 'p34', name: 'Angels Share', brand: 'Killian', image: 'angelsshare.png' },
+            { id: 'p35', name: 'Black Orchid', brand: 'Tom Ford', image: 'blackorchid.png' },
             { id: 'p36', name: 'Dior Homme Sport', brand: 'Dior', image: 'diorhommesport.png' }
         ];
         // ===================================
