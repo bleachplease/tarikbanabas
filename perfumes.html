@@ -17,6 +17,26 @@
             align-items: center;
             background: url('background.jpg') center / cover repeat-y,
                         linear-gradient(135deg, #ffd1e8, #d7c4ff, #bfeaff);
+            overflow: hidden;
+        }
+
+        #screensaver {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .screensaver-image {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.7;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.16));
         }
 
         .container {
@@ -27,6 +47,8 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
             text-align: center;
+            position: relative;
+            z-index: 1;
         }
 
         h1 { font-size: 36px; margin: 0 0 10px; color: #411A59; }
@@ -125,6 +147,8 @@
     </style>
 </head>
 <body>
+    <div id="screensaver"></div>
+
     <div class="container">
         <h1>O MU BU MU?</h1>
         <div class="transparent-box">
@@ -356,6 +380,61 @@
         load();
         newPair();
         render();
+
+        // ===== DVD-STYLE CAT BACKGROUND =====
+        function createScreensaverImage(src, index) {
+            const img = document.createElement('div');
+            img.className = 'screensaver-image';
+            img.style.backgroundImage = `url('${src}')`;
+            img.style.width = '120px';
+            img.style.height = '120px';
+            screensaver.appendChild(img);
+
+            const state = {
+                x: Math.random() * (window.innerWidth - 120),
+                y: Math.random() * (window.innerHeight - 120),
+                vx: (Math.random() * 2 + 1) * (Math.random() < 0.5 ? -1 : 1),
+                vy: (Math.random() * 2 + 1) * (Math.random() < 0.5 ? -1 : 1),
+            };
+
+            function update() {
+                state.x += state.vx;
+                state.y += state.vy;
+
+                if (state.x <= 0 || state.x + 120 >= window.innerWidth) {
+                    state.vx *= -1;
+                    state.x = Math.max(0, Math.min(state.x, window.innerWidth - 120));
+                }
+                if (state.y <= 0 || state.y + 120 >= window.innerHeight) {
+                    state.vy *= -1;
+                    state.y = Math.max(0, Math.min(state.y, window.innerHeight - 120));
+                }
+
+                img.style.left = state.x + 'px';
+                img.style.top = state.y + 'px';
+            }
+
+            return { update };
+        }
+
+        const screensaver = document.getElementById('screensaver');
+        const catImages = [
+            'gato1.png',
+            'gato2.png',
+            'gato3.png',
+            'gato4.png'
+        ];
+
+        const catObjects = catImages.map((src, index) => createScreensaverImage(src, index));
+
+        function animateScreensaver() {
+            for (const cat of catObjects) {
+                cat.update();
+            }
+            requestAnimationFrame(animateScreensaver);
+        }
+
+        requestAnimationFrame(animateScreensaver);
     </script>
 </body>
 </html>
