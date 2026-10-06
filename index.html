@@ -81,14 +81,18 @@
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
-            max-width: 500px;
+            max-width: 700px;
             margin-left: auto;
             margin-right: auto;
         }
 
         .nefes-text {
-            background: url('nefesin.png') center / contain no-repeat;
-            padding: 20px;
+            background: url('nefesin.png') center / cover no-repeat;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 30px 20px;
             border-radius: 8px;
             color: #fff;
             text-shadow: 0 2px 6px rgba(0,0,0,0.6);
@@ -97,6 +101,8 @@
 
         .nefes-text p {
             margin: 0.5em 0;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
         .menu {
