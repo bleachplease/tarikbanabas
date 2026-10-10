@@ -109,6 +109,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
+            justify-items: center;
         }
 
         .menu a {
@@ -137,6 +138,11 @@
             opacity: 0.85;
         }
 
+        .menu a:nth-child(3) {
+            grid-column: 1 / -1;
+            width: fit-content;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .vibrant-colors { animation: none; color: #CEA0E8; }
         }
@@ -158,6 +164,7 @@
             <nav class="menu">
                 <a href="perfumes.html">Parfüm oyunu oyna<small>O mu bu mu</small></a>
                 <a href="blackjack.html">Blackjack oyna<small>Beat the dealer</small></a>
+                <a href="fortune.html">Fal bak<small></small></a>
             </nav>
         </div>
     </div>
