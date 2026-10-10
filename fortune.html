@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask the Cards</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('background.jpg') center / cover repeat-y,
+                        linear-gradient(135deg, #2b1055, #5b2a86, #1b1038);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+
+        h1 { font-size: 36px; margin: 0 0 10px; color: #e6c36a; letter-spacing: 2px; }
+
+        .transparent-box {
+            background: rgba(28, 10, 48, 0.78);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e6c36a;
+            color: #f3e9ff;
+        }
+
+        label { display: block; margin-bottom: 8px; font-size: 18px; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid #e6c36a;
+            background: #fff;
+            color: #222;
+            font-family: inherit;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #e6c36a;
+            color: #2a1245;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover { background-color: #f1d58f; }
+        button.secondary { background-color: transparent; color: #e6c36a; border: 1px solid #e6c36a; }
+        button.secondary:hover { background-color: rgba(230, 195, 106, 0.15); }
+
+        #status { min-height: 22px; margin: 10px 0 0; color: #ffb4b4; }
+
+        #reading { margin-top: 16px; text-align: left; }
+
+        .opening { font-size: 19px; text-align: center; margin: 0 0 16px; }
+
+        .spread { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+
+        .slot {
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .slot.show { opacity: 1; transform: none; }
+
+        .position { text-align: center; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #e6c36a; margin-bottom: 6px; }
+
+        .tcard {
+            height: 150px;
+            border: 2px solid #e6c36a;
+            border-radius: 10px;
+            background: radial-gradient(circle at 50% 40%, #5b2a86, #2a1245);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .tcard .symbol { font-size: 48px; line-height: 1; }
+        .tcard.reversed .symbol { transform: rotate(180deg); }
+        .tcard .cname { font-weight: bold; color: #e6c36a; }
+        .tcard .rev { font-size: 12px; color: #d9c6f0; min-height: 14px; }
+
+        .slot p { margin: 0; font-size: 15px; line-height: 1.5; }
+
+        .ending { margin-top: 18px; text-align: center; opacity: 0; transition: opacity 0.8s ease; }
+        .ending.show { opacity: 1; }
+        .ending p { margin: 8px 0; }
+        .ending .closing { color: #e6c36a; font-style: italic; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .slot, .ending { transition: none; transform: none; }
+        }
+
+        .back-link { display: inline-block; margin-top: 16px; color: #e6c36a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ASK THE CARDS</h1>
+        <div class="transparent-box">
+            <form id="askForm">
+                <label for="question">Think of a question, then type it here:</label>
+                <input type="text" id="question" maxlength="200" autocomplete="off" placeholder="Will I study abroad?">
+                <button type="submit">Ask the cards</button>
+                <button type="button" id="againBtn" class="secondary" hidden>Ask another question</button>
+            </form>
+            <p id="status" aria-live="polite"></p>
+            <div id="reading" aria-live="polite"></div>
+            <a class="back-link" href="index.html">&larr; Back home</a>
+        </div>
+    </div>
+
+    <script>
+        // ===== PART 1: TOPICS =====
+        // Words people use when asking about each topic. Prefixes work: 'study' also catches 'studying'.
+        const TOPICS = {
+            love:      ['love', 'boyfriend', 'girlfriend', 'crush', 'relationship', 'marry', 'marriage', 'miss', 'date', 'dating', 'ex', 'kiss', 'together', 'heart'],
+            money:     ['money', 'rich', 'salary', 'buy', 'debt', 'afford', 'save', 'invest', 'pay', 'wealth', 'financ'],
+            education: ['study', 'school', 'exam', 'universit', 'abroad', 'degree', 'college', 'learn', 'grade', 'course', 'scholarship', 'master', 'graduate'],
+            career:    ['job', 'work', 'promotion', 'interview', 'boss', 'career', 'business', 'hire', 'resign', 'quit', 'company']
+        };
+
+        // Used in the opening line of non yes/no questions.
+        const TOPIC_NAMES = {
+            love: 'matters of the heart',
+            money: 'money and security',
+            education: 'your studies',
+            career: 'your work',
+            general: 'what is on your mind'
+        };
+
+        // ===== PART 2: CARDS =====
+        // tone: 1 = good, 0 = mixed, -1 = difficult.
+        // Add a line per topic when the card has something clear to say.
+        // 'general' is the fallback for any question, so keep it abstract.
+        const CARDS = {
+            fool: {
+                name: 'The Fool', symbol: '🌿', tone: 1,
+                love: 'A fresh start, taken with an open heart and no guarantees.',
+                money: 'A leap into something new. Take it with a small safety net.',
+                education: 'A brand-new path opens, and you do not need to have it all figured out.',
+                career: 'A new beginning where curiosity matters more than experience.',
+                general: 'A new beginning is calling, and the courage to start matters more than a perfect plan.',
+                reversed: 'Hesitation or recklessness. Look before you leap.'
+            },
+            magician: {
+                name: 'The Magician', symbol: '✨', tone: 1,
+                love: 'You have everything needed to make this connection real. Say what you feel.',
+                money: 'Your skills can turn into income if you act on them.',
+                education: 'You already have the tools you need to succeed here.',
+                career: 'Your talents are noticed. This is the time to show what you can do.',
+                general: 'You have more power over this than you think. The tools are already in your hands.',
+                reversed: 'Untapped potential, or energy scattered in too many directions.'
+            },
+            lovers: {
+                name: 'The Lovers', symbol: '💞', tone: 1,
+                love: 'A deep connection, or an honest choice about the heart.',
+                money: 'A partnership or shared decision shapes your finances.',
+                education: 'You stand between paths, and the one that matches your values wins.',
+                career: 'The right people and the right values matter more than the title.',
+                general: 'A big choice is in front of you. Let your values decide.',
+                reversed: 'Mixed signals, or a choice you keep postponing.'
+            },
+            chariot: {
+                name: 'The Chariot', symbol: '🛡️', tone: 1,
+                love: 'Moving forward with confidence. Both sides need to pull in the same direction.',
+                money: 'Discipline and focus move you toward a goal.',
+                education: 'Determination carries you through. Focus wins here.',
+                career: 'Drive and discipline push you ahead of the competition.',
+                general: 'Victory through focus and willpower. Keep your hands on the reins.',
+                reversed: 'Lost direction, or pushing too hard without a plan.'
+            },
+            strength: {
+                name: 'Strength', symbol: '🦁', tone: 1,
+                love: 'Patience and gentleness hold this together more than force.',
+                money: 'Calm, steady habits beat risky moves.',
+                education: 'Quiet persistence carries you through the hard parts.',
+                career: 'Patience with people and pressure earns respect.',
+                general: 'Gentle courage wins here. Patience is stronger than force.',
+                reversed: 'Self-doubt, or running low on energy. Rest before pushing.'
+            },
+            wheel: {
+                name: 'Wheel of Fortune', symbol: '🎡', tone: 1,
+                love: 'Timing is turning in your favor.',
+                money: 'Luck shifts, so be ready to act when it does.',
+                education: 'An opportunity appears that you did not plan for.',
+                career: 'A turning point arrives. Be ready to move with it.',
+                general: 'A cycle is turning, and a change you could not force is on its way.',
+                reversed: 'A delay. The timing is not right yet.'
+            },
+            death: {
+                name: 'Death', symbol: '🦋', tone: 0,
+                love: 'An old pattern ends to make room for something truer.',
+                money: 'An old way of handling money ends, and a better one begins.',
+                education: 'A chapter closes, and a new one is opening.',
+                career: 'One chapter of work ends so another can begin.',
+                general: 'An ending that clears space. Let go of what has already finished.',
+                reversed: 'Clinging to something that has already run its course.'
+            },
+            temperance: {
+                name: 'Temperance', symbol: '🌊', tone: 0,
+                love: 'Balance and patience. Slow and steady grows something lasting.',
+                money: 'Moderation and balance protect you. Avoid extremes.',
+                education: 'A steady, balanced pace works better than cramming.',
+                career: 'Compromise and teamwork bring better results than going alone.',
+                general: 'Balance and moderation. Mix patience with action and avoid extremes.',
+                reversed: 'Imbalance. Something is being overdone.'
+            },
+            tower: {
+                name: 'The Tower', symbol: '⚡', tone: -1,
+                love: 'A sudden truth shakes things up, but what falls was never stable.',
+                money: 'An unexpected expense or change, so build in a cushion.',
+                education: 'A sudden shake-up in plans, which clears space for a better route.',
+                career: 'A sudden shake-up that clears space for something better.',
+                general: 'Something you relied on changes fast, and it leads to a rebuild.',
+                reversed: 'You sense the change coming and are resisting it.'
+            },
+            star: {
+                name: 'The Star', symbol: '⭐', tone: 1,
+                love: 'Healing and hope. Honest, gentle love is possible.',
+                money: 'Slow recovery and hope. Steady steps bring improvement.',
+                education: 'Inspiration and guidance. Your efforts are heading somewhere good.',
+                career: 'Your talents are recognized, and the long-term outlook is bright.',
+                general: 'Hope and renewal. Keep going, because things are improving.',
+                reversed: 'Lost faith. Do not let a short rough patch convince you otherwise.'
+            },
+            moon: {
+                name: 'The Moon', symbol: '🌙', tone: -1,
+                love: 'Mixed feelings or unspoken things. Ask directly instead of guessing.',
+                money: 'Unclear details. Read the fine print before committing.',
+                education: 'Uncertainty about the details. Gather more information before deciding.',
+                career: 'Things are not as clear as they look. Do not rely on rumors.',
+                general: 'Things are unclear, and instinct helps more than assumptions. Wait for the full picture.',
+                reversed: 'Confusion lifting. The truth is becoming visible.'
+            },
+            sun: {
+                name: 'The Sun', symbol: '☀️', tone: 1,
+                love: 'Warmth, joy and openness. A happy connection.',
+                money: 'Success and stability. Effort pays off.',
+                education: 'Success and clarity. Your effort shows.',
+                career: 'Recognition and success. Your hard work is seen.',
+                general: 'Joy, clarity and success. This looks good.',
+                reversed: 'Good things are on the way but delayed. Keep expectations realistic.'
+            }
+        };
+
+        // ===== PART 3: SPREAD POSITIONS =====
+        const POSITIONS = [
+            { label: 'The situation', frame: 'At the heart of this: ' },
+            { label: 'The obstacle',  frame: 'What stands in the way: ' },
+            { label: 'The outcome',   frame: 'Where this is heading: ' }
+        ];
+
+        // ===== PART 4: EXTRA LINES =====
+        const OPENINGS = {
+            yes:     ['The cards lean toward yes.', 'The signs point in your favor.'],
+            no:      ['The cards lean toward no, for now.', 'The cards advise caution here.'],
+            unclear: ['The cards are undecided, so the outcome is still in your hands.', 'The answer is not fixed yet, and your choices will tip it.']
+        };
+        const TIMING = [
+            'As for timing, not tomorrow, but sooner than you fear.',
+            'As for timing, within a season, once you stop watching the clock.',
+            'As for timing, when you have stopped waiting for permission.'
+        ];
+        const BARNUM = [
+            'You have been holding something back that you have not told anyone.',
+            'You are harder on yourself than anyone else is.',
+            'You need to be liked, yet you are more independent than people think.',
+            'You have unused strength that you have not shown yet.',
+            'At times you doubt a decision you made, but it was right for you at the time.'
+        ];
+        const CLOSINGS = [
+            'Trust yourself more than the cards.',
+            'Patience will matter more than speed.',
+            'The cards show a direction, and you choose the steps.',
+            'Listen to your first instinct, then check it with your head.'
+        ];
+
+        // ===== PART 5: THE ENGINE (no need to edit below) =====
+        const YESNO_STARTERS = ['will', 'should', 'can', 'could', 'do', 'does', 'did', 'is', 'am', 'are', 'shall', 'would', 'has', 'have'];
+
+        function normalize(q) {
+            return q.toLowerCase().replace(/[^a-z0-9\s']/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function detectTopic(q) {
+            const padded = ' ' + q + ' ';
+            let best = 'general', bestScore = 0;
+            for (const topic in TOPICS) {
+                const score = TOPICS[topic].filter(w => padded.includes(' ' + w)).length;
+                if (score > bestScore) { best = topic; bestScore = score; }
+            }
+            return best;
+        }
+
+        function isYesNo(q) { return YESNO_STARTERS.includes(q.split(' ')[0]); }
+        function isTiming(q) { return q.split(' ')[0] === 'when' || q.includes('how long') || q.includes('how soon'); }
+
+        // Same question on the same day gives the same reading.
+        function hash(str) {
+            let h = 1779033703 ^ str.length;
+            for (let i = 0; i < str.length; i++) {
+                h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+            }
+            h = Math.imul(h ^ (h >>> 16), 2246822507);
+            h = Math.imul(h ^ (h >>> 13), 3266489909);
+            return (h ^ (h >>> 16)) >>> 0;
+        }
+        function makeRng(seed) {
+            return function () {
+                seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+                let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+        const pickFrom = (list, rng) => list[Math.floor(rng() * list.length)];
+
+        function drawCards(rng) {
+            const keys = Object.keys(CARDS);
+            for (let i = keys.length - 1; i > 0; i--) {
+                const j = Math.floor(rng() * (i + 1));
+                [keys[i], keys[j]] = [keys[j], keys[i]];
+            }
+            return keys.slice(0, 3).map(key => ({ key, reversed: rng() < 0.35 }));
+        }
+
+        function yesNoLean(drawn) {
+            let score = 0;
+            drawn.forEach((d, i) => {
+                const tone = CARDS[d.key].tone * (d.reversed ? -1 : 1);
+                score += tone * (i === 2 ? 2 : 1);
+            });
+            return score > 1 ? 'yes' : score < -1 ? 'no' : 'unclear';
+        }
+
+        function el(tag, className, text) {
+            const e = document.createElement(tag);
+            if (className) e.className = className;
+            if (text !== undefined) e.textContent = text;
+            return e;
+        }
+
+        function buildReading(rawQuestion) {
+            const q = normalize(rawQuestion);
+            const today = new Date().toISOString().slice(0, 10);
+            const rng = makeRng(hash(q + '|' + today));
+
+            const topic = detectTopic(q);
+            const yesNo = isYesNo(q);
+            const drawn = drawCards(rng);
+
+            const wrap = document.createDocumentFragment();
+
+            // Opening line
+            let opening;
+            if (yesNo) opening = pickFrom(OPENINGS[yesNoLean(drawn)], rng);
+            else opening = 'On ' + TOPIC_NAMES[topic] + ', the cards say:';
+            if (isTiming(q)) opening += ' ' + pickFrom(TIMING, rng);
+            wrap.appendChild(el('p', 'opening', opening));
+
+            // Spread
+            const spread = el('div', 'spread');
+            const slots = [];
+            drawn.forEach((d, i) => {
+                const card = CARDS[d.key];
+                const text = d.reversed ? card.reversed : (card[topic] || card.general);
+
+                const slot = el('div', 'slot');
+                slot.appendChild(el('div', 'position', POSITIONS[i].label));
+                const tcard = el('div', 'tcard' + (d.reversed ? ' reversed' : ''));
+                tcard.append(el('div', 'symbol', card.symbol), el('div', 'cname', card.name), el('div', 'rev', d.reversed ? '(reversed)' : ''));
+                slot.appendChild(tcard);
+                slot.appendChild(el('p', '', POSITIONS[i].frame + text));
+                spread.appendChild(slot);
+                slots.push(slot);
+            });
+            wrap.appendChild(spread);
+
+            // Ending
+            const ending = el('div', 'ending');
+            ending.appendChild(el('p', '', pickFrom(BARNUM, rng)));
+            ending.appendChild(el('p', 'closing', pickFrom(CLOSINGS, rng)));
+            wrap.appendChild(ending);
+
+            return { wrap, slots, ending };
+        }
+
+        const form = document.getElementById('askForm');
+        const input = document.getElementById('question');
+        const reading = document.getElementById('reading');
+        const status = document.getElementById('status');
+        const againBtn = document.getElementById('againBtn');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let timers = [];
+
+        function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const question = input.value.trim();
+            if (!question) { status.textContent = 'Type a question first.'; return; }
+            status.textContent = '';
+            clearTimers();
+            reading.replaceChildren();
+
+            const { wrap, slots, ending } = buildReading(question);
+            reading.appendChild(wrap);
+            againBtn.hidden = false;
+
+            const step = reduceMotion ? 0 : 900;
+            slots.forEach((slot, i) => {
+                timers.push(setTimeout(() => slot.classList.add('show'), 300 + i * step));
+            });
+            timers.push(setTimeout(() => ending.classList.add('show'), 300 + slots.length * step));
+        });
+
+        againBtn.addEventListener('click', function () {
+            clearTimers();
+            reading.replaceChildren();
+            input.value = '';
+            againBtn.hidden = true;
+            input.focus();
+        });
+    </script>
+</body>
+</html>
