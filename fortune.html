@@ -301,23 +301,22 @@
         // ===== PART 5: THE ENGINE (no need to edit below) =====
         const YESNO_STARTERS = ['will', 'should', 'can', 'could', 'do', 'does', 'did', 'is', 'am', 'are', 'shall', 'would', 'has', 'have'];
 
-        function normalize(q) {
+                function normalize(q) {
             return q.toLocaleLowerCase('tr-TR')
-            .replace(/[^\p{L}\p{N}\s']/gu, ' ')
-            .replace(/\s+/g, ' ').trim();
+                    .replace(/[^\p{L}\p{N}\s']/gu, ' ')
+                    .replace(/\s+/g, ' ').trim();
         }
 
         function detectTopic(q) {
             const padded = ' ' + q + ' ';
             let best = 'general', bestScore = 0;
             for (const topic in TOPICS) {
-                const score = TOPICS[topic].filter(w => padded.includes(' ' + w)).length;
+                const score = TOPICS[topic].filter(w => {
+                    w = w.toLocaleLowerCase('tr-TR');
+                    return padded.includes(' ' + w + (w.length <= 3 ? ' ' : ''));
+                }).length;
                 if (score > bestScore) { best = topic; bestScore = score; }
             }
-            return best;
-        }
-
-                function detectTopic(q) {
             return best;
         }
 
@@ -334,8 +333,15 @@
         }
 
         // Same question on the same day gives the same reading.
-        function hash(str)
-
+        function hash(str) {
+            let h = 1779033703 ^ str.length;
+            for (let i = 0; i < str.length; i++) {
+                h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+                h = (h << 13) | (h >>> 19);
+            }
+            h = Math.imul(h ^ (h >>> 16), 2246822507);
+            h = Math.imul(h ^ (h >>> 13), 3266489909);
+            return (h ^ (h >>> 16)) >>> 0;
         }
 
         // Same question on the same day gives the same reading.
