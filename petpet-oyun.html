@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Petpet Top Oyunu</title>
+<title>Kedicik Domates Oyunu</title>
 <style>
   html, body { margin: 0; height: 100%; background: #1b1530; display: flex; align-items: center; justify-content: center; }
   canvas { max-width: 100vw; max-height: 100vh; aspect-ratio: 2 / 3; touch-action: none; background: linear-gradient(#7fd0ff, #d9f3ff 70%, #8fdc7a 70%); border-radius: 12px; }
@@ -124,9 +124,9 @@ function draw() {
   if (state !== "play") {
     ctx.fillStyle = "rgba(27,21,48,.65)"; ctx.fillRect(40, 220, W - 80, 130);
     ctx.fillStyle = "#fff"; ctx.font = "bold 24px sans-serif";
-    ctx.fillText(state === "over" ? "Oyun bitti! Skor: " + score : "Petpet Top Oyunu", W / 2, 272);
+    ctx.fillText(state === "over" ? "Oyun bitti! Skor: " + score : "Kedicik Domates Oyunu", W / 2, 272);
     ctx.font = "16px sans-serif";
-    ctx.fillText(state === "over" ? "Tekrar için dokun" : "Başlamak için dokun, petpeti sürükle", W / 2, 310);
+    ctx.fillText(state === "over" ? "Tekrar için dokun" : "Başlamak için kediciği sürükle", W / 2, 310);
   }
 }
 
