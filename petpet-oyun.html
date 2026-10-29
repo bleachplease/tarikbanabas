@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Petpet Top Oyunu</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1b1530; display: flex; align-items: center; justify-content: center; }
+  canvas { max-width: 100vw; max-height: 100vh; aspect-ratio: 2 / 3; touch-action: none; background: linear-gradient(#7fd0ff, #d9f3ff 70%, #8fdc7a 70%); border-radius: 12px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="400" height="600"></canvas>
+<script>
+// ====== AYARLAR: kendi görsellerinin yolunu buraya yaz ======
+const PETPET_SRC = "ascikedi.png"; // petpet görseli
+const BALL_SRC   = "domates.png";  // top görseli
+const PET_W = 120, PET_H = 120;    // petpet boyutu (px)
+const BALL_R = 24;                 // top yarıçapı
+const GRAVITY = 900;               // yerçekimi
+const BOUNCE_V = 720;              // vurunca yukarı hız
+const SPEED_STEP = 0.5;            // hız artışı
+const SPEED_EVERY = 5;             // kaç sektirmede bir
+// =============================================================
+
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+const W = cv.width, H = cv.height, GROUND = H * 0.7;
+
+function loadImg(src) {
+  const i = new Image(); i.ok = false;
+  i.onload = () => i.ok = true;
+  i.src = src; return i;
+}
+const petImg = loadImg(PETPET_SRC), ballImg = loadImg(BALL_SRC);
+
+let best = 0;
+try { best = +localStorage.getItem("petpetBest") || 0; } catch (e) {}
+
+const pet = { x: W / 2, vx: 0 };           // x = petpetin ortası
+const ball = { x: 0, y: 0, vx: 0, vy: 0 };
+let state = "ready", score = 0;
+
+function speedMult() { return 1 + SPEED_STEP * Math.floor(score / SPEED_EVERY); }
+
+function petY() { return GROUND - PET_H + 10; } // petpetin üst kenarı
+
+function reset() {
+  score = 0;
+  ball.x = 60 + Math.random() * (W - 120);
+  ball.y = -BALL_R; ball.vx = (Math.random() - 0.5) * 120; ball.vy = 0;
+}
+reset();
+
+// ---- Sürükleme ----
+let dragging = false, grabOff = 0;
+function px(e) { const r = cv.getBoundingClientRect(); return (e.clientX - r.left) * W / r.width; }
+cv.addEventListener("pointerdown", e => {
+  cv.setPointerCapture(e.pointerId);
+  if (state !== "play") { reset(); state = "play"; }
+  const x = px(e);
+  dragging = true;
+  grabOff = Math.abs(x - pet.x) < PET_W ? pet.x - x : 0;
+});
+cv.addEventListener("pointermove", e => {
+  if (!dragging) return;
+  const nx = Math.max(PET_W / 2, Math.min(W - PET_W / 2, px(e) + grabOff));
+  pet.vx = nx - pet.x; pet.x = nx;
+});
+cv.addEventListener("pointerup", () => dragging = false);
+cv.addEventListener("pointercancel", () => dragging = false);
+
+// ---- Güncelleme ----
+function update(dt) {
+  if (state !== "play") return;
+  dt *= speedMult();
+  const prevBottom = ball.y + BALL_R;
+  ball.vy += GRAVITY * dt;
+  ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+
+  // duvarlar
+  if (ball.x < BALL_R) { ball.x = BALL_R; ball.vx = Math.abs(ball.vx); }
+  if (ball.x > W - BALL_R) { ball.x = W - BALL_R; ball.vx = -Math.abs(ball.vx); }
+
+  // kafa çarpışması (petpetin üst kısmı)
+  const headTop = petY() + PET_H * 0.08;
+  const headHalf = PET_W * 0.38;
+  const bottom = ball.y + BALL_R;
+  if (ball.vy > 0 && prevBottom <= headTop + 12 && bottom >= headTop &&
+      Math.abs(ball.x - pet.x) < headHalf + BALL_R * 0.6) {
+    ball.y = headTop - BALL_R;
+    const off = (ball.x - pet.x) / headHalf;               // -1 .. 1
+    ball.vx = Math.max(-320, Math.min(320, off * 240 + pet.vx * 12));
+    ball.vy = -BOUNCE_V;
+    score++;
+    if (score > best) { best = score; try { localStorage.setItem("petpetBest", best); } catch (e) {} }
+  }
+
+  // yere düştü
+  if (ball.y - BALL_R > H) state = "over";
+  pet.vx *= 0.8;
+}
+
+// ---- Çizim ----
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  const py = petY();
+  if (petImg.ok) ctx.drawImage(petImg, pet.x - PET_W / 2, py, PET_W, PET_H);
+  else { // görsel yoksa yedek çizim
+    ctx.fillStyle = "#ff9ecb"; ctx.beginPath();
+    ctx.ellipse(pet.x, py + PET_H / 2, PET_W / 2, PET_H / 2, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#222"; ctx.beginPath();
+    ctx.arc(pet.x - 18, py + 45, 6, 0, 7); ctx.arc(pet.x + 18, py + 45, 6, 0, 7); ctx.fill();
+  }
+  if (ballImg.ok) ctx.drawImage(ballImg, ball.x - BALL_R, ball.y - BALL_R, BALL_R * 2, BALL_R * 2);
+  else {
+    ctx.fillStyle = "#ffd23f"; ctx.beginPath(); ctx.arc(ball.x, ball.y, BALL_R, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#c79a00"; ctx.lineWidth = 3; ctx.stroke();
+  }
+
+  ctx.textAlign = "center"; ctx.fillStyle = "#1b1530";
+  ctx.font = "bold 36px sans-serif"; ctx.fillText(score, W / 2, 50);
+  ctx.font = "14px sans-serif"; ctx.fillText("En iyi: " + best + "   Hız: " + speedMult() + "x", W / 2, 72);
+
+  if (state !== "play") {
+    ctx.fillStyle = "rgba(27,21,48,.65)"; ctx.fillRect(40, 220, W - 80, 130);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 24px sans-serif";
+    ctx.fillText(state === "over" ? "Oyun bitti! Skor: " + score : "Petpet Top Oyunu", W / 2, 272);
+    ctx.font = "16px sans-serif";
+    ctx.fillText(state === "over" ? "Tekrar için dokun" : "Başlamak için dokun, petpeti sürükle", W / 2, 310);
+  }
+}
+
+let last = performance.now();
+function loop(t) {
+  const dt = Math.min(0.033, (t - last) / 1000); last = t;
+  update(dt); draw(); requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
